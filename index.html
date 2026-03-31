@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Term Log</title>
+<style>
+:root {
+  --bg: #FFFFFF;
+  --surface: #F9FAFB;
+  --border: #E5E7EB;
+  --border-light: #F3F4F6;
+  --text: #374151;
+  --text2: #9CA3AF;
+  --text3: #D1D5DB;
+  --accent: #6B7280;
+  --accent-light: rgba(107,114,128,0.08);
+  --danger: #DC2626;
+  --danger-light: rgba(220,38,38,0.06);
+  --success: #059669;
+  --success-light: rgba(5,150,105,0.06);
+  --radius: 8px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', -apple-system, sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  min-height: 100dvh;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px 14px;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.app-title {
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+.term-count {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--accent-light);
+  color: var(--accent);
+}
+.search-box { position: relative; }
+.search-box input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-box input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+.search-box input::placeholder { color: var(--text3); }
+.search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text2);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+/* ── Tags ── */
+.tags-bar {
+  display: flex;
+  gap: 6px;
+  padding: 10px 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border-light);
+}
+.tags-bar::-webkit-scrollbar { display: none; }
+.tag-chip {
+  flex-shrink: 0;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tag-chip.active {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+
+/* ── Sort ── */
+.sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 20px 4px;
+  background: var(--bg);
+}
+.sort-label {
+  font-size: 11px;
+  color: var(--text3);
+}
+.sort-btn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.sort-btn.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Term List ── */
+.term-list {
+  padding: 8px 20px 140px;
+  background: var(--bg);
+}
+.term-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+  position: relative;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s;
+  animation: cardIn 0.3s ease both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.term-card:active { box-shadow: var(--shadow-md); }
+.term-name {
+  font-size: 15px;
+  font-weight: 200;
+  color: var(--text);
+  margin-bottom: 6px;
+  padding-right: 28px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.term-meaning {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.term-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.term-tag {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 10px;
+  background: var(--accent-light);
+  color: var(--accent);
+}
+.term-date {
+  font-size: 10px;
+  color: var(--text3);
+  margin-left: auto;
+}
+.term-actions { position: absolute; top: 14px; right: 14px; }
+.btn-delete {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.btn-delete:hover, .btn-delete:active { color: var(--danger); }
+
+.empty-state { text-align: center; padding: 80px 24px; }
+.empty-icon {
+  font-size: 40px;
+  color: var(--border);
+  margin-bottom: 12px;
+}
+.empty-state p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text2);
+  font-weight: 300;
+}
+
+/* ── Bottom Bar ── */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 10px;
+}
+.btn {
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-primary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-primary:active { background: var(--border-light); }
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.btn-secondary:active { background: var(--border-light); }
+
+/* ── Modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(55,65,81,0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg);
+  border-radius: 14px 14px 0 0;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  padding: 20px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  animation: slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  box-shadow: var(--shadow-lg);
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-handle {
+  width: 32px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 18px;
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 300;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.btn-close {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.btn-close:active { background: var(--border-light); }
+
+/* ── Form ── */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 5px;
+  letter-spacing: 0.05em;
+}
+.form-input, .form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus, .form-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+.form-textarea { min-height: 90px; resize: vertical; line-height: 1.6; }
+.form-hint { font-size: 10px; color: var(--text3); margin-top: 4px; }
+
+/* ── Import ── */
+.import-textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 12px;
+  font-family: "SF Mono", "Menlo", "Courier New", monospace;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.import-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+.import-mode { display: flex; gap: 6px; margin: 12px 0; }
+.mode-btn {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  line-height: 1.4;
+}
+.mode-btn.active {
+  border-color: var(--text);
+  color: var(--text);
+  font-weight: 600;
+}
+.mode-sub {
+  display: block;
+  font-size: 10px;
+  color: var(--text3);
+  font-weight: 400;
+  margin-top: 2px;
+}
+.import-result {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  margin-top: 10px;
+  display: none;
+  line-height: 1.5;
+}
+.import-result.success {
+  display: block;
+  background: var(--success-light);
+  border: 1px solid rgba(5,150,105,0.15);
+  color: var(--success);
+}
+.import-result.error {
+  display: block;
+  background: var(--danger-light);
+  border: 1px solid rgba(220,38,38,0.12);
+  color: var(--danger);
+}
+
+/* ── Template ── */
+.template-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 12px;
+  font-family: "SF Mono", "Menlo", "Courier New", monospace;
+  color: var(--text2);
+  line-height: 1.6;
+  margin: 10px 0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  position: relative;
+}
+.template-card:active { border-color: var(--accent); }
+.copy-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 10px;
+  font-family: inherit;
+  color: var(--text3);
+  background: var(--bg);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.tip-text {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.7;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+/* ── Tabs ── */
+.modal-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.modal-tab {
+  flex: 1;
+  padding: 9px 6px;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  font-size: 13px;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.modal-tab.active {
+  color: var(--text);
+  font-weight: 600;
+  border-bottom-color: var(--text);
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  top: 68px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-12px);
+  background: var(--text);
+  color: var(--bg);
+  padding: 9px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 400;
+  z-index: 300;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.22,1,0.36,1);
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Confirm ── */
+.confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  background: rgba(55,65,81,0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.confirm-overlay.open { display: flex; }
+.confirm-box {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 24px 20px;
+  max-width: 280px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+.confirm-msg {
+  font-size: 14px;
+  font-weight: 300;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+.confirm-btns { display: flex; gap: 8px; }
+.confirm-btns .btn { font-size: 13px; }
+.btn-danger { background: var(--danger); color: #fff; border: none; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="btn btn-secondary" onclick="closeConfirm()">キャンセル</button>
+      <button class="btn btn-danger" id="confirmOk">削除</button>
+    </div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="header-top">
+    <div class="app-title">Term Log</div>
+    <div class="term-count" id="termCount">0件</div>
+  </div>
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="検索...">
+  </div>
+</header>
+
+<div class="tags-bar" id="tagsBar">
+  <div class="tag-chip active" onclick="filterTag('all')">すべて</div>
+</div>
+
+<div class="sort-bar">
+  <span class="sort-label">並び順</span>
+  <div style="display:flex;gap:2px">
+    <button class="sort-btn active" data-sort="newest" onclick="setSort('newest')">新しい順</button>
+    <button class="sort-btn" data-sort="oldest" onclick="setSort('oldest')">古い順</button>
+    <button class="sort-btn" data-sort="alpha" onclick="setSort('alpha')">五十音</button>
+  </div>
+</div>
+
+<div class="term-list" id="termList"></div>
+
+<div class="bottom-bar">
+  <button class="btn btn-primary" onclick="openModal('add')">＋ 新規追加</button>
+  <button class="btn btn-secondary" onclick="openModal('io')">入出力</button>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      <span id="addModalTitle">用語を追加</span>
+      <button class="btn-close" onclick="closeModal('add')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">用語</label>
+      <input class="form-input" id="inputTerm" placeholder="例: プロンプトインジェクション">
+    </div>
+    <div class="form-group">
+      <label class="form-label">意味・説明</label>
+      <textarea class="form-textarea" id="inputMeaning" placeholder="例: AIへの悪意ある命令埋め込み攻撃"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">タグ</label>
+      <input class="form-input" id="inputTags" placeholder="例: セキュリティ, AI">
+      <div class="form-hint">カンマ区切りで複数指定可</div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="saveTerm()" id="saveTermBtn">追加する</button>
+  </div>
+</div>
+
+<!-- IO Modal -->
+<div class="modal-overlay" id="ioModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      <span>入出力</span>
+      <button class="btn-close" onclick="closeModal('io')">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchTab('import')">インポート</button>
+      <button class="modal-tab" onclick="switchTab('export')">エクスポート</button>
+      <button class="modal-tab" onclick="switchTab('template')">AI用テンプレ</button>
+    </div>
+
+    <div class="tab-content active" id="tab-import">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:10px;font-weight:300">AIが出力したJSONをここに貼り付けてください。</p>
+      <textarea class="import-textarea" id="importText" placeholder='[{"term":"用語名","meaning":"意味","tags":["タグ"]}]'></textarea>
+      <div class="import-mode">
+        <button class="mode-btn active" data-mode="merge" onclick="setImportMode('merge')">マージ<span class="mode-sub">重複スキップ</span></button>
+        <button class="mode-btn" data-mode="add" onclick="setImportMode('add')">追加のみ<span class="mode-sub">全部追加</span></button>
+        <button class="mode-btn" data-mode="replace" onclick="setImportMode('replace')">全置換<span class="mode-sub">既存を消す</span></button>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="importJSON()">インポート実行</button>
+      <div class="import-result" id="importResult"></div>
+    </div>
+
+    <div class="tab-content" id="tab-export">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:10px;font-weight:300">全データをJSONとしてコピーまたはファイル保存できます。</p>
+      <textarea class="import-textarea" id="exportText" readonly style="min-height:180px"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-primary" style="flex:1" onclick="copyExport()">コピー</button>
+        <button class="btn btn-secondary" style="flex:1" onclick="downloadExport()">ファイル保存</button>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-template">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:10px;font-weight:300">以下をAI（Claude / ChatGPT等）に貼って、用語をまとめてもらいましょう。</p>
+      <div class="template-card" id="templateBox" onclick="copyTemplate()">以下のJSON形式で用語をまとめてください。
+Webサーチは使わないでください。
+
+[
+  {
+    "term": "用語名",
+    "meaning": "わかりやすい説明",
+    "tags": ["カテゴリ"]
+  }
+]
+
+注意:
+- tagsは配列で1つ以上
+- meaningは改行可
+- 余計なテキストは不要、JSONだけ出力<span class="copy-badge">tap to copy</span></div>
+      <div class="tip-text">💡 チャットで用語を教えてもらった後、最後に「今回の用語をこの形式でまとめて」と頼むと便利です。出力されたJSONを「インポート」タブに貼るだけ。</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY='termlog_data';
+let terms=[],activeTag='all',sortMode='newest',editingId=null,importMode='merge';
+
+function init(){loadFromStorage();render();document.getElementById('searchInput').addEventListener('input',render)}
+function loadFromStorage(){try{const r=localStorage.getItem(STORAGE_KEY);if(r)terms=JSON.parse(r)}catch(e){terms=[]}}
+function saveToStorage(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(terms))}catch(e){showToast('保存に失敗しました',true)}}
+function render(){renderTags();renderTerms();document.getElementById('termCount').textContent=terms.length+'件'}
+
+function renderTags(){
+  const s=new Set();terms.forEach(t=>(t.tags||[]).forEach(tag=>s.add(tag)));
+  const bar=document.getElementById('tagsBar');
+  bar.innerHTML='<div class="tag-chip'+(activeTag==='all'?' active':'')+'" onclick="filterTag(\'all\')">すべて</div>';
+  [...s].sort().forEach(tag=>{bar.innerHTML+='<div class="tag-chip'+(activeTag===tag?' active':'')+'" onclick="filterTag(\''+escapeJs(tag)+'\')">'+escapeHtml(tag)+'</div>'});
+}
+
+function renderTerms(){
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  let f=terms.filter(t=>{
+    if(activeTag!=='all'&&!(t.tags||[]).includes(activeTag))return false;
+    if(q)return(t.term+' '+t.meaning+' '+(t.tags||[]).join(' ')).toLowerCase().includes(q);
+    return true;
+  });
+  f=[...f];
+  if(sortMode==='newest')f.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  else if(sortMode==='oldest')f.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  else f.sort((a,b)=>a.term.localeCompare(b.term,'ja'));
+  const list=document.getElementById('termList');
+  if(!f.length){
+    list.innerHTML='<div class="empty-state"><div class="empty-icon">📖</div><p>'+(q||activeTag!=='all'?'条件に合う用語がありません':'用語がまだありません。<br>「＋ 新規追加」か「入出力 → インポート」から<br>追加してみましょう。')+'</p></div>';
+    return;
+  }
+  list.innerHTML=f.map((t,i)=>{
+    const tags=(t.tags||[]).map(tag=>'<span class="term-tag">'+escapeHtml(tag)+'</span>').join('');
+    return'<div class="term-card" style="animation-delay:'+(i*.04)+'s"><div class="term-actions"><button class="btn-delete" onclick="deleteTerm(\''+t.id+'\')" title="削除">✕</button></div><div class="term-name" onclick="editTerm(\''+t.id+'\')">'+escapeHtml(t.term)+'</div><div class="term-meaning">'+escapeHtml(t.meaning)+'</div><div class="term-meta">'+tags+'<span class="term-date">'+(t.date||'')+'</span></div></div>';
+  }).join('');
+}
+
+function generateId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function getToday(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+
+function saveTerm(){
+  const term=document.getElementById('inputTerm').value.trim(),meaning=document.getElementById('inputMeaning').value.trim(),tagsRaw=document.getElementById('inputTags').value.trim();
+  if(!term){showToast('用語を入力してください',true);return}
+  if(!meaning){showToast('意味を入力してください',true);return}
+  const tags=tagsRaw?tagsRaw.split(/[,、]/).map(s=>s.trim()).filter(Boolean):[];
+  if(editingId){const idx=terms.findIndex(t=>t.id===editingId);if(idx>=0){terms[idx].term=term;terms[idx].meaning=meaning;terms[idx].tags=tags}editingId=null}
+  else terms.push({id:generateId(),term,meaning,tags,date:getToday()});
+  saveToStorage();render();closeModal('add');showToast(editingId?'更新しました':'追加しました');clearAddForm()
+}
+
+function editTerm(id){
+  const t=terms.find(x=>x.id===id);if(!t)return;editingId=id;
+  document.getElementById('inputTerm').value=t.term;document.getElementById('inputMeaning').value=t.meaning;
+  document.getElementById('inputTags').value=(t.tags||[]).join(', ');
+  document.getElementById('addModalTitle').textContent='用語を編集';document.getElementById('saveTermBtn').textContent='更新する';openModal('add')
+}
+
+function deleteTerm(id){const t=terms.find(x=>x.id===id);if(!t)return;showConfirm('「'+t.term+'」を削除しますか？',()=>{terms=terms.filter(x=>x.id!==id);saveToStorage();render();showToast('削除しました')})}
+
+function clearAddForm(){
+  document.getElementById('inputTerm').value='';document.getElementById('inputMeaning').value='';document.getElementById('inputTags').value='';
+  document.getElementById('addModalTitle').textContent='用語を追加';document.getElementById('saveTermBtn').textContent='追加する';editingId=null
+}
+
+function importJSON(){
+  const raw=document.getElementById('importText').value.trim(),r=document.getElementById('importResult');
+  if(!raw){r.className='import-result error';r.textContent='JSONを貼り付けてください';return}
+  let parsed;try{parsed=JSON.parse(raw)}catch(e){r.className='import-result error';r.textContent='JSONの構文エラー: '+e.message;return}
+  if(!Array.isArray(parsed)){if(parsed&&typeof parsed==='object'&&parsed.term)parsed=[parsed];else{r.className='import-result error';r.textContent='配列形式のJSONが必要です';return}}
+  const valid=[],errors=[];
+  parsed.forEach((item,i)=>{
+    if(!item.term||typeof item.term!=='string'){errors.push((i+1)+'番目: termが必要');return}
+    if(!item.meaning||typeof item.meaning!=='string'){errors.push((i+1)+'番目: meaningが必要');return}
+    valid.push({id:generateId(),term:String(item.term).trim(),meaning:String(item.meaning).trim(),tags:Array.isArray(item.tags)?item.tags.map(t=>String(t).trim()).filter(Boolean):[],date:item.date&&typeof item.date==='string'?item.date.trim():getToday()})
+  });
+  if(!valid.length){r.className='import-result error';r.textContent='有効な用語がありません。'+(errors.length?'\n'+errors.join('\n'):'');return}
+  let added=0,skipped=0;
+  if(importMode==='replace'){terms=valid;added=valid.length}
+  else if(importMode==='add'){terms=terms.concat(valid);added=valid.length}
+  else{const existing=new Set(terms.map(t=>t.term.toLowerCase()));valid.forEach(v=>{if(existing.has(v.term.toLowerCase()))skipped++;else{terms.push(v);existing.add(v.term.toLowerCase());added++}})}
+  saveToStorage();render();
+  let msg=added+'件追加しました';if(skipped)msg+='（'+skipped+'件は重複スキップ）';if(errors.length)msg+='\n⚠ '+errors.length+'件エラー';
+  r.className='import-result success';r.textContent=msg;document.getElementById('importText').value=''
+}
+
+function copyExport(){
+  const text=JSON.stringify(terms.map(t=>({term:t.term,meaning:t.meaning,tags:t.tags,date:t.date})),null,2);
+  document.getElementById('exportText').value=text;copyToClipboard(text);showToast('コピーしました')
+}
+function downloadExport(){
+  const data=JSON.stringify(terms.map(t=>({term:t.term,meaning:t.meaning,tags:t.tags,date:t.date})),null,2);
+  const blob=new Blob([data],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='termlog_'+getToday()+'.json';a.click();URL.revokeObjectURL(url);showToast('ダウンロードしました')
+}
+function copyTemplate(){const text=document.getElementById('templateBox').textContent.replace('tap to copy','').trim();copyToClipboard(text);showToast('テンプレをコピーしました')}
+
+function openModal(type){
+  if(type==='add')document.getElementById('addModal').classList.add('open');
+  else if(type==='io'){document.getElementById('exportText').value=JSON.stringify(terms.map(t=>({term:t.term,meaning:t.meaning,tags:t.tags,date:t.date})),null,2);document.getElementById('ioModal').classList.add('open')}
+}
+function closeModal(type){
+  if(type==='add'){document.getElementById('addModal').classList.remove('open');clearAddForm()}
+  else if(type==='io'){document.getElementById('ioModal').classList.remove('open');document.getElementById('importResult').className='import-result'}
+}
+
+function filterTag(tag){activeTag=tag;render()}
+function setSort(mode){sortMode=mode;document.querySelectorAll('.sort-btn').forEach(b=>b.classList.toggle('active',b.dataset.sort===mode));render()}
+function setImportMode(mode){importMode=mode;document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode))}
+function switchTab(tab){
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.modal-tab[onclick*="'+tab+'"]').classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active')
+}
+
+function showToast(msg,isError){const t=document.getElementById('toast');t.textContent=msg;t.style.background=isError?'var(--danger)':'var(--text)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+function showConfirm(msg,onOk){document.getElementById('confirmMsg').textContent=msg;document.getElementById('confirmOverlay').classList.add('open');document.getElementById('confirmOk').onclick=()=>{closeConfirm();onOk()}}
+function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('open')}
+function copyToClipboard(text){if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).catch(()=>fallbackCopy(text));else fallbackCopy(text)}
+function fallbackCopy(text){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta)}
+function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function escapeJs(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+
+document.addEventListener('click',e=>{if(e.target.id==='addModal')closeModal('add');if(e.target.id==='ioModal')closeModal('io');if(e.target.id==='confirmOverlay')closeConfirm()});
+init();
+</script>
+</body>
+</html>
